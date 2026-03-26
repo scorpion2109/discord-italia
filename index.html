@@ -189,9 +189,9 @@ function toggleProfileMenu(){
 }
 
 // LOGIN DISCORD
-function loginDiscord(){
-  window.location.href="https://discord.com/oauth2/authorize?client_id=1483469321970913411&response_type=token&redirect_uri=http://localhost:3000&scope=identify%20email";
-}
+  const clientId = "1483469321970913411";
+const redirectUri = encodeURIComponent(window.location.origin + "/");
+window.location.href = `https://discord.com/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=identify%20email`;
 
 // OTTIENI UTENTE
 function getDiscordUser(){
