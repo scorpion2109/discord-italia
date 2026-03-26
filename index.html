@@ -189,10 +189,11 @@ function toggleProfileMenu(){
 }
 
 // LOGIN DISCORD
+  function loginDiscord(){
   const clientId = "1483469321970913411";
 const redirectUri = encodeURIComponent(window.location.origin + "/");
 window.location.href = `https://discord.com/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=identify%20email`;
-
+  }
 // OTTIENI UTENTE
 function getDiscordUser(){
   const hash=window.location.hash;
