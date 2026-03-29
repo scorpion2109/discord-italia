@@ -1,1 +1,206 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - Discord Italia</title>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<style>
+body {
+  margin:0;
+  font-family:sans-serif;
+  background:#0a0f1c;
+  color:white;
+}
+
+/* HEADER */
+header {
+  display:flex;
+  justify-content:space-between;
+  padding:15px 20px;
+  background:#00000080;
+}
+
+.logo {
+  font-weight:bold;
+}
+
+.user {
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  overflow:hidden;
+}
+
+.user img {
+  width:100%;
+}
+
+/* DASHBOARD */
+.container {
+  padding:40px 20px;
+  text-align:center;
+}
+
+.card {
+  max-width:500px;
+  margin:auto;
+  background:#0f172a;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 0 30px rgba(0,255,136,0.2);
+}
+
+input {
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  margin-bottom:15px;
+  background:#1f2937;
+  color:white;
+}
+
+.buttons {
+  display:flex;
+  gap:10px;
+}
+
+button {
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
+  transition:0.2s;
+}
+
+.ban { background:#ff3d3d; }
+.kick { background:#ff9800; }
+.warn { background:#ffd600; color:black; }
+
+button:hover {
+  transform:scale(1.05);
+  box-shadow:0 0 10px rgba(255,255,255,0.3);
+}
+
+.log {
+  margin-top:20px;
+  font-size:0.9em;
+  opacity:0.8;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo">🛡️ Dashboard</div>
+<div class="user" id="userBox"></div>
+</header>
+
+<div class="container">
+  <div class="card">
+
+    <h2>Gestione Utenti</h2>
+
+    <input id="userId" placeholder="ID utente Discord">
+
+    <div class="buttons">
+      <button class="ban" onclick="banUser()">🔨 Ban</button>
+      <button class="kick" onclick="kickUser()">👢 Kick</button>
+      <button class="warn" onclick="warnUser()">⚠️ Warn</button>
+    </div>
+
+    <div class="log" id="log"></div>
+
+  </div>
+</div>
+
+<script>
+
+// 🔥 FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyD-G52a43M43KpZd5kEygDkc3ehEGx1TcY",
+  authDomain: "discord-italia-a6fd2.firebaseapp.com",
+  projectId: "discord-italia-a6fd2"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// 🔑 SERVER ID (METTI IL TUO)
+const GUILD_ID = "METTI_ID_SERVER";
+
+// 🔐 CONTROLLO LOGIN
+const user = JSON.parse(localStorage.getItem("discordUser"));
+
+if(!user){
+  alert("Devi fare login dal sito!");
+  window.location.href = "index.html";
+}
+
+// mostra avatar
+document.getElementById("userBox").innerHTML =
+  `<img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png">`;
+
+// LOG
+function log(msg){
+  document.getElementById("log").innerText = msg;
+}
+
+// 🔨 BAN
+async function banUser(){
+  const id = document.getElementById("userId").value;
+
+  if(!id) return log("Inserisci ID");
+
+  await db.collection("commands").add({
+    type:"ban",
+    userId:id,
+    guildId:GUILD_ID,
+    by:user.id,
+    date:new Date()
+  });
+
+  log("Utente bannato (inviato al bot)");
+}
+
+// 👢 KICK
+async function kickUser(){
+  const id = document.getElementById("userId").value;
+
+  await db.collection("commands").add({
+    type:"kick",
+    userId:id,
+    guildId:GUILD_ID,
+    by:user.id,
+    date:new Date()
+  });
+
+  log("Utente kickato");
+}
+
+// ⚠️ WARN
+async function warnUser(){
+  const id = document.getElementById("userId").value;
+
+  await db.collection("commands").add({
+    type:"warn",
+    userId:id,
+    guildId:GUILD_ID,
+    by:user.id,
+    date:new Date()
+  });
+
+  log("Warning inviato");
+}
+
+</script>
+
+</body>
+  </html>
