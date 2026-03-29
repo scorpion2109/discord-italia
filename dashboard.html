@@ -3,203 +3,152 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - Discord Italia</title>
-
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
+<title>Dashboard Server Discord</title>
 <style>
-body {
-  margin:0;
-  font-family:sans-serif;
-  background:#0a0f1c;
-  color:white;
-}
-
-/* HEADER */
-header {
-  display:flex;
-  justify-content:space-between;
-  padding:15px 20px;
-  background:#00000080;
-}
-
-.logo {
-  font-weight:bold;
-}
-
-.user {
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  overflow:hidden;
-}
-
-.user img {
-  width:100%;
-}
-
-/* DASHBOARD */
-.container {
-  padding:40px 20px;
-  text-align:center;
-}
-
-.card {
-  max-width:500px;
-  margin:auto;
-  background:#0f172a;
-  padding:25px;
-  border-radius:15px;
-  box-shadow:0 0 30px rgba(0,255,136,0.2);
-}
-
-input {
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  margin-bottom:15px;
-  background:#1f2937;
-  color:white;
-}
-
-.buttons {
-  display:flex;
-  gap:10px;
-}
-
-button {
-  flex:1;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:bold;
-  transition:0.2s;
-}
-
-.ban { background:#ff3d3d; }
-.kick { background:#ff9800; }
-.warn { background:#ffd600; color:black; }
-
-button:hover {
-  transform:scale(1.05);
-  box-shadow:0 0 10px rgba(255,255,255,0.3);
-}
-
-.log {
-  margin-top:20px;
-  font-size:0.9em;
-  opacity:0.8;
-}
+  body { font-family: Arial, sans-serif; margin:0; background:#181818; color:#fff; }
+  #sidebar { width: 220px; background:#222; height:100vh; position:fixed; padding-top:20px; }
+  #sidebar ul { list-style:none; padding:0; }
+  #sidebar li { padding:15px 20px; cursor:pointer; }
+  #sidebar li:hover { background:#333; }
+  #mainContent { margin-left:220px; padding:20px; }
+  .section { display:none; }
+  button { cursor:pointer; padding:5px 10px; margin:5px; }
+  input, textarea { padding:5px; margin:5px 0; width:100%; }
+  #userProfile { border:1px solid #333; padding:15px; border-radius:5px; margin-top:10px; }
 </style>
 </head>
-
 <body>
 
-<header>
-<div class="logo">🛡️ Dashboard</div>
-<div class="user" id="userBox"></div>
-</header>
+<div id="sidebar">
+  <ul>
+    <li onclick="showSection('stats')">Statistiche</li>
+    <li onclick="showSection('server')">Gestione Server</li>
+    <li onclick="showSection('users')">Gestione Utenti</li>
+    <li onclick="showSection('staff')">Gestione Staff</li>
+    <li onclick="showSection('blacklist')">Gestione Blacklist</li>
+    <li onclick="showSection('partnership')">Gestione Partnership</li>
+  </ul>
+</div>
 
-<div class="container">
-  <div class="card">
+<div id="mainContent">
+  <!-- STATISTICHE -->
+  <div id="stats" class="section">
+    <h2>Statistiche Server</h2>
+    <p>Totale membri: <span id="totalMembers"></span></p>
+    <p>Online: <span id="onlineMembers"></span></p>
+    <p>Offline: <span id="offlineMembers"></span></p>
+    <p>Warn totali: <span id="totalWarns"></span></p>
+    <p>Ban totali: <span id="totalBans"></span></p>
+  </div>
 
+  <!-- GESTIONE SERVER -->
+  <div id="server" class="section">
+    <h2>Gestione Server</h2>
+    <p>Qui puoi aggiungere comandi per ruoli, canali e configurazioni bot.</p>
+  </div>
+
+  <!-- GESTIONE UTENTI -->
+  <div id="users" class="section">
     <h2>Gestione Utenti</h2>
+    <input type="text" id="searchUser" placeholder="Cerca utente per nome o ID">
+    <button onclick="searchUser()">Cerca</button>
+    <div id="userProfile"></div>
+  </div>
 
-    <input id="userId" placeholder="ID utente Discord">
+  <!-- GESTIONE STAFF -->
+  <div id="staff" class="section">
+    <h2>Gestione Staff</h2>
+    <p>Aggiungi o rimuovi membri dello staff, visualizza log azioni.</p>
+  </div>
 
-    <div class="buttons">
-      <button class="ban" onclick="banUser()">🔨 Ban</button>
-      <button class="kick" onclick="kickUser()">👢 Kick</button>
-      <button class="warn" onclick="warnUser()">⚠️ Warn</button>
-    </div>
+  <!-- GESTIONE BLACKLIST -->
+  <div id="blacklist" class="section">
+    <h2>Gestione Blacklist</h2>
+    <p>Lista utenti/IP bannati o bloccati dal server.</p>
+  </div>
 
-    <div class="log" id="log"></div>
-
+  <!-- GESTIONE PARTNERSHIP -->
+  <div id="partnership" class="section">
+    <h2>Gestione Partnership</h2>
+    <p>Gestione partner, annunci, eventi e collaborazioni.</p>
   </div>
 </div>
 
 <script>
+  function showSection(sectionId){
+    document.querySelectorAll('.section').forEach(s => s.style.display='none');
+    document.getElementById(sectionId).style.display='block';
+  }
+  // Mostra per default la sezione Statistiche
+  showSection('stats');
 
-// 🔥 FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyD-G52a43M43KpZd5kEygDkc3ehEGx1TcY",
-  authDomain: "discord-italia-a6fd2.firebaseapp.com",
-  projectId: "discord-italia-a6fd2"
-};
+  // Carica statistiche dal backend
+  async function loadStats(){
+    const res = await fetch("/api/stats");
+    const stats = await res.json();
+    document.getElementById("totalMembers").innerText = stats.totalMembers;
+    document.getElementById("onlineMembers").innerText = stats.online;
+    document.getElementById("offlineMembers").innerText = stats.offline;
+    document.getElementById("totalWarns").innerText = stats.totalWarns;
+    document.getElementById("totalBans").innerText = stats.totalBans;
+  }
+  loadStats();
+  setInterval(loadStats, 30000); // aggiorna ogni 30s
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+  // GESTIONE UTENTI
+  async function searchUser(){
+    const query = document.getElementById("searchUser").value;
+    const res = await fetch(`/api/searchUser?query=${query}`);
+    const user = await res.json();
+    const profileDiv = document.getElementById("userProfile");
+    if(user.error){ profileDiv.innerHTML = user.error; return; }
 
-// 🔑 SERVER ID (METTI IL TUO)
-const GUILD_ID = "METTI_ID_SERVER";
+    // Mostra profilo utente
+    profileDiv.innerHTML = `
+      <h3>${user.username}#${user.discriminator}</h3>
+      <p>ID: ${user.id}</p>
+      <p>Nickname: <span id="nicknameDisplay">${user.nickname || ''}</span> 
+        <button onclick="editNick('${user.id}')">Modifica</button></p>
+      <p>Ruoli: ${user.roles.join(', ')}</p>
+      <p>Join Date: ${new Date(user.joinDate).toLocaleString()}</p>
+      <h4>Warn ricevuti:</h4>
+      <ul id="warnList">${user.warns.map(w=>`<li>${w.reason} (Staff: ${w.staffId})</li>`).join('')}</ul>
+      <textarea id="warnReason" placeholder="Motivo warn"></textarea>
+      <button onclick="giveWarn('${user.id}')">Dai Warn</button>
+      <button onclick="kickUser('${user.id}')">Kick</button>
+      <button onclick="banUser('${user.id}')">Ban</button>
+    `;
+  }
 
-// 🔐 CONTROLLO LOGIN
-const user = JSON.parse(localStorage.getItem("discordUser"));
+  async function giveWarn(userId){
+    const reason = document.getElementById("warnReason").value;
+    await fetch(`/api/user/${userId}/warn`, { 
+      method:'POST', headers:{'Content-Type':'application/json'}, 
+      body: JSON.stringify({reason, staffId:'STAFFID'}) 
+    });
+    alert("Warn dato!");
+    searchUser(); // aggiorna profilo
+  }
 
-if(!user){
-  alert("Devi fare login dal sito!");
-  window.location.href = "index.html";
-}
+  async function kickUser(userId){
+    await fetch(`/api/user/${userId}/kick`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({reason:'Kicked dalla Dash'}) });
+    alert("Utente kickato!");
+    searchUser();
+  }
 
-// mostra avatar
-document.getElementById("userBox").innerHTML =
-  `<img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png">`;
+  async function banUser(userId){
+    await fetch(`/api/user/${userId}/ban`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({reason:'Bannato dalla Dash'}) });
+    alert("Utente bannato!");
+    searchUser();
+  }
 
-// LOG
-function log(msg){
-  document.getElementById("log").innerText = msg;
-}
-
-// 🔨 BAN
-async function banUser(){
-  const id = document.getElementById("userId").value;
-
-  if(!id) return log("Inserisci ID");
-
-  await db.collection("commands").add({
-    type:"ban",
-    userId:id,
-    guildId:GUILD_ID,
-    by:user.id,
-    date:new Date()
-  });
-
-  log("Utente bannato (inviato al bot)");
-}
-
-// 👢 KICK
-async function kickUser(){
-  const id = document.getElementById("userId").value;
-
-  await db.collection("commands").add({
-    type:"kick",
-    userId:id,
-    guildId:GUILD_ID,
-    by:user.id,
-    date:new Date()
-  });
-
-  log("Utente kickato");
-}
-
-// ⚠️ WARN
-async function warnUser(){
-  const id = document.getElementById("userId").value;
-
-  await db.collection("commands").add({
-    type:"warn",
-    userId:id,
-    guildId:GUILD_ID,
-    by:user.id,
-    date:new Date()
-  });
-
-  log("Warning inviato");
-}
-
+  async function editNick(userId){
+    const newNick = prompt("Inserisci nuovo nickname:");
+    if(!newNick) return;
+    await fetch(`/api/user/${userId}/nickname`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({newNick}) });
+    alert("Nickname aggiornato!");
+    searchUser();
+  }
 </script>
 
 </body>
