@@ -14,26 +14,25 @@ body.light { background:#f1f1f1; color:#000;}
 
 header {display:flex; justify-content:space-between; padding:15px; background:#00000080;}
 .logo {font-weight:bold;}
-.nav-icons {display:flex; gap:20px;}
 
 .user {width:40px;height:40px;border-radius:50%;background:#1f2937;cursor:pointer;overflow:hidden;}
 .user img {width:100%;}
 
 .profile-menu {
   position:absolute; top:70px; right:20px;
-  width:250px; background:#0f172a;
+  width:260px; background:#0f172a;
   border-radius:15px; padding:15px;
-  display:none; box-shadow:0 0 20px rgba(0,255,136,0.3);
+  display:none;
 }
 
-.profile-menu button, select {
+button, select {
   width:100%; margin-top:10px; padding:8px;
   border:none; border-radius:8px;
   background:#1f2937; color:white;
   cursor:pointer;
 }
 
-.profile-menu button:hover {background:#00c853; color:black;}
+button:hover {background:#00c853; color:black;}
 
 .hero {text-align:center; padding:80px 20px;}
 .stats {display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px;padding:20px;}
@@ -45,10 +44,6 @@ header {display:flex; justify-content:space-between; padding:15px; background:#0
 
 <header>
 <div class="logo">🇮🇹 Discord Italia</div>
-
-<div class="nav-icons">
-<div onclick="toggleTheme()">🌙</div>
-</div>
 
 <div class="user" onclick="toggleMenu()"></div>
 
@@ -67,6 +62,7 @@ header {display:flex; justify-content:space-between; padding:15px; background:#0
 </div>
 
 <div id="userMenu" style="display:none;">
+<button id="dashboardBtn" style="display:none;" onclick="goDashboard()">🛡️ Dashboard</button>
 <button onclick="logout()">🚪 Logout</button>
 </div>
 
@@ -96,7 +92,7 @@ header {display:flex; justify-content:space-between; padding:15px; background:#0
 
 <script>
 
-// 🔥 FIREBASE CONFIG (GIÀ TUA)
+// 🔥 FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyD-G52a43M43KpZd5kEygDkc3ehEGx1TcY",
   authDomain: "discord-italia-a6fd2.firebaseapp.com",
@@ -112,7 +108,7 @@ function toggleMenu(){
   m.style.display = m.style.display==="block"?"none":"block";
 }
 
-// LOGIN DISCORD
+// LOGIN
 function login(){
   const clientId = "1483469321970913411";
   const redirect = encodeURIComponent("https://scorpion2109.github.io/discord-italia/");
@@ -127,16 +123,39 @@ function logout(){
   location.reload();
 }
 
+// DASHBOARD NAV
+function goDashboard(){
+  window.location.href = "dashboard.html";
+}
+
 // MOSTRA UTENTE
 function showUser(u){
   document.getElementById("guestMenu").style.display="none";
   document.getElementById("userMenu").style.display="block";
+
   document.getElementById("username").innerText=u.username;
   document.getElementById("userid").innerText=u.id;
-  document.getElementById("avatar").src=`https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png`;
 
-  document.querySelector(".user").innerHTML =
-    `<img src="https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png">`;
+  const avatar = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png`;
+
+  document.getElementById("avatar").src = avatar;
+  document.querySelector(".user").innerHTML = `<img src="${avatar}">`;
+
+  // 🔥 CONTROLLO STAFF
+  checkStaff(u.id);
+}
+
+// 🔥 CONTROLLO STAFF
+async function checkStaff(userId){
+  try{
+    const doc = await db.collection("staff").doc(userId).get();
+
+    if(doc.exists){
+      document.getElementById("dashboardBtn").style.display="block";
+    }
+  }catch(e){
+    console.error(e);
+  }
 }
 
 // TEMA
@@ -155,7 +174,7 @@ window.onload = async () => {
 
   const hash = window.location.hash;
 
-  // LOGIN DA DISCORD
+  // LOGIN DISCORD
   if(hash.includes("access_token")){
     const params = new URLSearchParams(hash.substring(1));
     const token = params.get("access_token");
@@ -179,7 +198,6 @@ window.onload = async () => {
 
     showUser(user);
 
-    // FIX 404
     window.history.replaceState({}, document.title, "/discord-italia/");
   }
 
@@ -189,7 +207,6 @@ window.onload = async () => {
 
   // TEMA
   if(localStorage.getItem("theme")==="light") toggleTheme();
-
 };
 
 </script>
