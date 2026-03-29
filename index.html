@@ -5,33 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Discord Italia</title>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <style>
 body { margin:0; font-family:sans-serif; background:#0a0f1c; color:white;}
 body.light { background:#f1f1f1; color:#000;}
+body.no-scroll { overflow:hidden; }
 
-header {display:flex; justify-content:space-between; padding:15px; background:#00000080;}
+header {display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:#00000080;}
 .logo {font-weight:bold;}
 
 .user {width:40px;height:40px;border-radius:50%;background:#1f2937;cursor:pointer;overflow:hidden;}
-.user img {width:100%;}
+.user img {width:100%; height:100%; border-radius:50%;}
 
 .profile-menu {
   position:absolute; top:70px; right:20px;
-  width:260px; background:#0f172a;
-  border-radius:15px; padding:15px;
-  display:none;
+  width:260px; background:#0f172a; border-radius:15px; padding:15px;
+  display:none; z-index:1000;
 }
 
 button, select {
-  width:100%; margin-top:10px; padding:8px;
-  border:none; border-radius:8px;
-  background:#1f2937; color:white;
-  cursor:pointer;
+  width:100%; margin-top:10px; padding:8px; border:none; border-radius:8px;
+  background:#1f2937; color:white; cursor:pointer;
 }
-
 button:hover {background:#00c853; color:black;}
 
 .hero {text-align:center; padding:80px 20px;}
@@ -43,55 +41,52 @@ button:hover {background:#00c853; color:black;}
 <body>
 
 <header>
-<div class="logo">🇮🇹 Discord Italia</div>
+  <div class="logo">🇮🇹 Discord Italia</div>
 
-<div class="user" onclick="toggleMenu()"></div>
+  <div class="user" onclick="toggleMenu()"></div>
 
-<div id="menu" class="profile-menu">
+  <div id="menu" class="profile-menu">
+    <div id="userHeader" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <img id="avatar" width="40" height="40">
+      <div>
+        <h4 id="username">Guest</h4>
+        <span id="userid"></span>
+      </div>
+    </div>
 
-<div id="userHeader">
-<img id="avatar" width="40">
-<div>
-<h4 id="username">Guest</h4>
-<span id="userid"></span>
-</div>
-</div>
+    <div id="guestMenu">
+      <button onclick="login()">🔐 Login Discord</button>
+    </div>
 
-<div id="guestMenu">
-<button onclick="login()">🔐 Login Discord</button>
-</div>
+    <div id="userMenu" style="display:none;">
+      <button id="dashboardBtn" style="display:none;" onclick="goDashboard()">🛡️ Dashboard</button>
+      <button onclick="logout()">🚪 Logout</button>
+    </div>
 
-<div id="userMenu" style="display:none;">
-<button id="dashboardBtn" style="display:none;" onclick="goDashboard()">🛡️ Dashboard</button>
-<button onclick="logout()">🚪 Logout</button>
-</div>
+    <hr>
 
-<hr>
+    <button onclick="toggleTheme()">🌙 Tema</button>
 
-<button onclick="toggleTheme()">🌙 Tema</button>
+    <select onchange="setLang(this.value)">
+      <option value="it">🇮🇹 Italiano</option>
+      <option value="en">🇬🇧 English</option>
+    </select>
 
-<select onchange="setLang(this.value)">
-<option value="it">🇮🇹 Italiano</option>
-<option value="en">🇬🇧 English</option>
-</select>
-
-</div>
-
+  </div>
 </header>
 
 <section class="hero">
-<h1>Discord Italia</h1>
-<p>La community italiana definitiva</p>
+  <h1>Discord Italia</h1>
+  <p>La community italiana definitiva</p>
 </section>
 
 <section class="stats">
-<div class="stat">👤 12K Membri</div>
-<div class="stat">🛡️ 30 Staff</div>
-<div class="stat">💬 1M Messaggi</div>
+  <div class="stat">👤 12K Membri</div>
+  <div class="stat">🛡️ 30 Staff</div>
+  <div class="stat">💬 1M Messaggi</div>
 </section>
 
 <script>
-
 // 🔥 FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyD-G52a43M43KpZd5kEygDkc3ehEGx1TcY",
@@ -108,7 +103,7 @@ function toggleMenu(){
   m.style.display = m.style.display==="block"?"none":"block";
 }
 
-// LOGIN
+// LOGIN DISCORD
 function login(){
   const clientId = "1483469321970913411";
   const redirect = encodeURIComponent("https://scorpion2109.github.io/discord-italia/");
@@ -123,7 +118,7 @@ function logout(){
   location.reload();
 }
 
-// DASHBOARD NAV
+// DASHBOARD
 function goDashboard(){
   window.location.href = "dashboard.html";
 }
@@ -137,7 +132,6 @@ function showUser(u){
   document.getElementById("userid").innerText=u.id;
 
   const avatar = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png`;
-
   document.getElementById("avatar").src = avatar;
   document.querySelector(".user").innerHTML = `<img src="${avatar}">`;
 
@@ -145,17 +139,14 @@ function showUser(u){
   checkStaff(u.id);
 }
 
-// 🔥 CONTROLLO STAFF
+// CONTROLLO STAFF
 async function checkStaff(userId){
   try{
     const doc = await db.collection("staff").doc(userId).get();
-
     if(doc.exists){
       document.getElementById("dashboardBtn").style.display="block";
     }
-  }catch(e){
-    console.error(e);
-  }
+  }catch(e){ console.error(e); }
 }
 
 // TEMA
@@ -165,16 +156,11 @@ function toggleTheme(){
 }
 
 // LINGUA
-function setLang(l){
-  localStorage.setItem("lang", l);
-}
+function setLang(l){ localStorage.setItem("lang", l); }
 
-// LOAD
+// LOGIN AUTOMATICO
 window.onload = async () => {
-
   const hash = window.location.hash;
-
-  // LOGIN DISCORD
   if(hash.includes("access_token")){
     const params = new URLSearchParams(hash.substring(1));
     const token = params.get("access_token");
@@ -182,22 +168,24 @@ window.onload = async () => {
     const res = await fetch("https://discord.com/api/users/@me", {
       headers:{Authorization:"Bearer "+token}
     });
-
     const user = await res.json();
-
     localStorage.setItem("discordUser", JSON.stringify(user));
 
-    // SALVA FIREBASE
-    await db.collection("users").doc(user.id).set({
-      username:user.username,
-      avatar:user.avatar,
-      id:user.id,
-      email:user.email || null,
-      lastLogin:new Date()
-    });
+    // 🔥 SALVA FIREBASE
+    try{
+      await db.collection("users").doc(user.id).set({
+        username:user.username,
+        avatar:user.avatar,
+        id:user.id,
+        email:user.email || null,
+        lastLogin:new Date()
+      });
+      console.log("✅ Utente salvato");
+    }catch(e){ console.error("🔥 Firebase error:", e); }
 
     showUser(user);
 
+    // Rimuove token dalla URL
     window.history.replaceState({}, document.title, "/discord-italia/");
   }
 
@@ -208,8 +196,7 @@ window.onload = async () => {
   // TEMA
   if(localStorage.getItem("theme")==="light") toggleTheme();
 };
-
 </script>
 
 </body>
-</html>
+        </html>
